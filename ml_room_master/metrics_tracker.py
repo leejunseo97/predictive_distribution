@@ -1,8 +1,8 @@
 import numpy as np
 import time
 
-class MetricsTracker():
 
+class MetricsTracker():
     def mean_squared_error(self, y_hat, y):
         return np.mean(np.fabs(y_hat**2 - y**2))
 
@@ -13,7 +13,7 @@ class MetricsTracker():
         start = time.time()
         res = operation(*args)
         end = time.time()
-        print (operation.__name__ + ": " + str(end - start) + " seconds.")
+        print(operation.__name__ + ": " + str(end - start) + " seconds.")
         return res
 
     def accuracy(self, y, y_hat):
