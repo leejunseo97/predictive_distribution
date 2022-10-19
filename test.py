@@ -1,2 +1,3 @@
-import numpy
 
+
+print(pow(5,0))
