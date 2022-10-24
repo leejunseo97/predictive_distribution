@@ -36,7 +36,12 @@ class BayesianLinearRegression(Predictor):
         self.likelihood_var = likelihood_var
         self.design_matrix = design_matrix
 
-    def predict(self, design_matrix):
+    def predict(self, x):
+        design_matrix = x
+        for i in range(2,degree_x + 1):
+            design_matrix = np.concatenate((design_matrix, pow(x, i)), axis=1)
+        bias = np.ones((x.shape[0], 1))
+        design_matrix = np.concatenate((bias, design_matrix), axis=1)
         m = design_matrix.dot(self.m_n).flatten()
         var = np.array(list(map(lambda x: x.dot(self.s_n).dot(x.T) + self.likelihood_var**2, design_matrix)))
         x = design_matrix[:,1].flatten()
