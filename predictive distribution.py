@@ -51,7 +51,9 @@ class BayesianLinearRegression(Predictor):
 
 
 if __name__ == "__main__":
-    degree_x = 8
+    ENVRIONMENT_NAME = ['co2', 'dp', 'hd', 'hmdt', 'hmdt_abs', 'hmdt_sat', 'ior', 'temp', 'vpd']
+    GROWTH_NAME = ['img_growth_length', 'img_stem_diameter', 'img_flower_height', 'img_flower_cluster', 'img_fruit_cluster', 'plant_leaf_length_width_rt', 'plant_leaf_width_length_rt', 'plant_lai', 'plant_flower_height_stem_dia_rt', 'fruit_weight_fresh', 'man_plant_height', 'man_growth_length', 'man_flower_height', 'man_stem_diameter', 'man_fl_cluster', 'man-fr-cluster', 'man_leaf_max_length', 'man_leaf_max_width', 'man_leaf', 'man_flower', 'man_fruit', 'man_fruit_length', 'man_fruit_width']
+    degree_x = 7
     likelihood_var = 0.5
     spline_smooth_condition = 0.07
     spline = True
@@ -61,23 +63,43 @@ if __name__ == "__main__":
 
     metrics_tracker = MetricsTracker()
     BLR = BayesianLinearRegression()
+    for name_x in GROWTH_NAME:
+        for name_y in ENVRIONMENT_NAME:
+            # 훈련
+            metrics_tracker.profile(BLR.train, name_x, name_y, degree_x, likelihood_var, np.ones(degree_x + 1).reshape((degree_x + 1, 1)), np.eye(degree_x + 1))
+            # 테스트
+            print(f'[({name_x}) to ({name_y}) data fitting...]')
+            test_y_linear_bayesian, x, m, var = metrics_tracker.profile(BLR.predict, BLR.design_matrix)
+            splined_x, splined_m, splined_var = BLR.spline(
+                BLR.target_x.flatten(), m, var, spline_smooth_condition)
+            # 플롯
+            plt.title(f'Bayesian Linear Regression (Degree {degree_x})', fontsize=15, fontweight='bold')
+            plt.xlabel(f'{name_x}', fontsize=12, fontweight='bold')
+            plt.ylabel(f'{name_y}', fontsize=12, fontweight='bold')
+            plt.scatter(BLR.target_x, BLR.target_y)
+            # plt.plot(x, m, label='mean of posterior')
+            plt.plot(splined_x, splined_m, label='splined mean of posterior')
+            plt.fill_between(splined_x, splined_m - n_sigma*splined_var, splined_m +
+                             n_sigma*splined_var, alpha=0.4, label=f'{n_sigma} sigma variance')
+            plt.legend(loc=2, prop={'weight':'bold'})
+            plt.tight_layout()
+            plt.savefig(f'growth_env_figs/{name_x}_{name_y}.png')
+            plt.clf()
+    # # 플롯
+    # if spline:
+    #     splined_x, splined_m, splined_var = BLR.spline(BLR.target_x.flatten(), m, var, spline_smooth_condition)
+    #     # plt.plot(x, m, label='mean of posterior')
+    #     plt.plot(splined_x, splined_m, label='splined mean of posterior')
+    #     plt.fill_between(splined_x, splined_m - n_sigma*splined_var, splined_m + n_sigma*splined_var, alpha=0.4, label=f'{n_sigma} sigma variance')
+    # else:
+    #     plt.plot(x, m, label='mean of posterior')
+    #     plt.fill_between(x, m - 1*var, m + 1*var, alpha=0.4, label=f'{n_sigma} sigma variance')
+    # plt.scatter(BLR.target_x, BLR.target_y)
+    # plt.title(f'Bayesian Linear Regression (Degree {degree_x})', fontsize=15, fontweight='bold')
+    # plt.tight_layout()
 
-    metrics_tracker.profile(BLR.train, name_x, name_y, degree_x, likelihood_var, np.ones(degree_x + 1).reshape((degree_x + 1, 1)), np.eye(degree_x + 1))
-    test_y_linear_bayesian, x, m, var = metrics_tracker.profile(BLR.predict, BLR.design_matrix)
-    if spline:
-        splined_x, splined_m, splined_var = BLR.spline(BLR.target_x.flatten(), m, var, spline_smooth_condition)
-        plt.plot(x, m, label='mean of posterior')
-        plt.plot(splined_x, splined_m, label='splined mean of posterior')
-        plt.fill_between(splined_x, splined_m - n_sigma*splined_var, splined_m + n_sigma*splined_var, alpha=0.4, label=f'{n_sigma} sigma variance')
-    else:
-        plt.plot(x, m, label='mean of posterior')
-        plt.fill_between(x, m - 1*var, m + 1*var, alpha=0.4, label=f'{n_sigma} sigma variance')
-    plt.scatter(BLR.target_x, BLR.target_y)
-    plt.title(f'Bayesian Linear Regression (Degree {degree_x})', fontsize=15, fontweight='bold')
-    plt.tight_layout()
-
-    plt.xlabel(f'{name_x}', fontsize=10, fontweight='bold')
-    plt.ylabel(f'{name_y}', fontsize=10, fontweight='bold')
-    plt.legend(loc=2, prop={'weight':'bold'})
-    plt.tight_layout()
-    plt.show()
+    # plt.xlabel(f'{name_x}', fontsize=12, fontweight='bold')
+    # plt.ylabel(f'{name_y}', fontsize=12, fontweight='bold')
+    # plt.legend(loc=2, prop={'weight':'bold'})
+    # plt.tight_layout()
+    # plt.show()
